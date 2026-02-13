@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iterative Refinement Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Iterative Refinement Explorer</h1>
+            <p class="subtitle">Watch how models improve outputs through recursive self-refinement</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Panel: Controls -->
+            <div class="control-panel">
+                <div class="section">
+                    <h3>Problem</h3>
+                    <select id="problemSelector" class="selector">
+                        <option value="code-review">Code Review (Find Bugs)</option>
+                        <option value="essay">Essay Quality (Improve Clarity)</option>
+                        <option value="math">Math Problem (Check Steps)</option>
+                        <option value="logic">Logic Puzzle (Verify Solution)</option>
+                        <option value="writing">Writing (Fix Tone)</option>
+                    </select>
+                    <div id="problemDescription" class="problem-desc"></div>
+                </div>
+
+                <div class="section">
+                    <h3>Refinement Depth</h3>
+                    <div class="slider-container">
+                        <input type="range" id="iterationSlider" min="1" max="6" value="3" class="slider">
+                        <span id="iterationLabel">3 passes</span>
+                    </div>
+                    <div class="slider-info">
+                        More passes = better quality, but diminishing returns after ~4
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Animation Speed</h3>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="0.5" max="2.5" step="0.5" value="1" class="slider">
+                        <span id="speedLabel">1x</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <button id="startBtn" class="btn btn-primary">Start Refinement</button>
+                    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                </div>
+
+                <div class="section">
+                    <h4>Timeline</h4>
+                    <div id="timeline" class="timeline"></div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Output -->
+            <div class="output-panel">
+                <div class="output-header">
+                    <h3>Current Output</h3>
+                    <span id="passLabel" class="pass-badge">Pass 1 of 3</span>
+                </div>
+                <div id="outputContent" class="output-content">
+                    <p class="placeholder">Select a problem and click "Start Refinement"</p>
+                </div>
+                <div id="changeIndicator" class="change-indicator"></div>
+            </div>
+
+            <!-- Right Panel: Metrics & Critique -->
+            <div class="metrics-panel">
+                <div class="metrics-section">
+                    <h3>Metrics</h3>
+                    <div id="metricsChart" class="chart"></div>
+                </div>
+
+                <div class="critique-section">
+                    <h4>Current Critique</h4>
+                    <div id="critiqueContent" class="critique-content">
+                        <p class="placeholder">Critique will appear here</p>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <h4>Progress</h4>
+                    <div class="stat-item">
+                        <span>Clarity:</span>
+                        <div class="progress-bar">
+                            <div id="clarityBar" class="progress-fill"></div>
+                        </div>
+                        <span id="clarityValue" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Correctness:</span>
+                        <div class="progress-bar">
+                            <div id="correctnessBar" class="progress-fill"></div>
+                        </div>
+                        <span id="correctnessValue" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Structure:</span>
+                        <div class="progress-bar">
+                            <div id="structureBar" class="progress-fill"></div>
+                        </div>
+                        <span id="structureValue" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Errors Found:</span>
+                        <span id="errorCount" class="error-count">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>💡 <strong>Recursive Refinement:</strong> This concept powers modern LLM architectures like Universal Transformers and adaptive computation models. Learn more: <a href="https://arxiv.org/abs/1603.06393" target="_blank">Universal Transformers</a></p>
+        </footer>
+    </div>
+
+    <script src="problems.js"></script>
+    <script src="refinement.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
