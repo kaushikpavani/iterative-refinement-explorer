@@ -1,208 +1,272 @@
-// Main app logic and event handlers
-let engine = null;
-let isRunning = false;
+// Application State
+let appState = {
+    currentExample: 'fraud-1',
+    passCount: 3,
+    examples: {},
+    activePass: null
+};
 
-document.addEventListener('DOMContentLoaded', () => {
-    engine = new RefinementEngine();
-    
-    // Event listeners
-    document.getElementById('problemSelector').addEventListener('change', handleProblemChange);
-    document.getElementById('iterationSlider').addEventListener('input', handleIterationChange);
-    document.getElementById('speedSlider').addEventListener('input', handleSpeedChange);
-    document.getElementById('startBtn').addEventListener('click', handleStartRefinement);
-    document.getElementById('resetBtn').addEventListener('click', handleReset);
-    
-    // Initialize UI
-    updateProblemDescription();
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadExamples();
+    setupEventListeners();
+    runRefinement();
 });
 
-function handleProblemChange() {
-    updateProblemDescription();
-    handleReset();
-}
-
-function handleIterationChange() {
-    const slider = document.getElementById('iterationSlider');
-    const label = document.getElementById('iterationLabel');
-    label.textContent = `${slider.value} passes`;
-}
-
-function handleSpeedChange() {
-    const slider = document.getElementById('speedSlider');
-    const label = document.getElementById('speedLabel');
-    const speed = parseFloat(slider.value);
-    label.textContent = `${speed.toFixed(1)}x`;
-    if (engine) {
-        engine.setSpeed(speed);
+// Load example data
+async function loadExamples() {
+    try {
+        const response = await fetch('data.json');
+        const data = await response.json();
+        appState.examples = data.examples;
+    } catch (error) {
+        console.error('Error loading data:', error);
     }
 }
 
-function handleReset() {
-    isRunning = false;
-    
-    if (engine) {
-        engine.reset();
-    }
-    
-    document.getElementById('outputContent').innerHTML = '<p class="placeholder">Select a problem and click "Start Refinement"</p>';
-    document.getElementById('critiqueContent').innerHTML = '<p class="placeholder">Critique will appear here</p>';
-    document.getElementById('passLabel').textContent = 'Not started';
-    document.getElementById('changeIndicator').textContent = '';
-    document.getElementById('changeIndicator').classList.remove('active');
-    document.getElementById('timeline').innerHTML = '';
-    
-    resetMetrics();
-    document.getElementById('startBtn').disabled = false;
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('problem-select').addEventListener('change', (e) => {
+        appState.currentExample = e.target.value;
+        document.getElementById('problem-input').value = '';
+        runRefinement();
+    });
+
+    document.getElementById('pass-slider').addEventListener('input', (e) => {
+        appState.passCount = parseInt(e.target.value);
+        document.getElementById('pass-count').textContent = appState.passCount;
+        runRefinement();
+    });
+
+    document.getElementById('run-button').addEventListener('click', runRefinement);
+
+    document.getElementById('problem-input').addEventListener('change', () => {
+        runRefinement();
+    });
 }
 
-function handleStartRefinement() {
-    const problemKey = document.getElementById('problemSelector').value;
-    const numPasses = parseInt(document.getElementById('iterationSlider').value);
-    
-    if (!engine.initProblem(problemKey, numPasses)) {
-        alert('Error initializing problem');
-        return;
-    }
-    
-    isRunning = true;
-    document.getElementById('startBtn').disabled = true;
-    
-    displayCurrentPass();
-    scheduleNextPass();
+// Main rendering function
+function runRefinement() {
+    const example = appState.examples[appState.currentExample];
+    if (!example) return;
+
+    renderTimeline(example);
+    renderMetricsChart(example);
+    appState.activePass = null;
 }
 
-function scheduleNextPass() {
-    if (!isRunning || engine.isComplete()) {
-        isRunning = false;
-        document.getElementById('startBtn').disabled = false;
-        return;
-    }
-    
-    const delay = engine.getAnimationDuration() + 1000; // Animation + pause
-    setTimeout(() => {
-        if (isRunning && engine.nextPass()) {
-            displayCurrentPass();
-            scheduleNextPass();
-        } else {
-            isRunning = false;
-            document.getElementById('startBtn').disabled = false;
-        }
-    }, delay);
-}
-
-function displayCurrentPass() {
-    const passData = engine.getCurrentPass();
-    const problem = engine.getProblem();
-    
-    if (!passData) return;
-    
-    // Update pass label
-    const passNum = engine.currentPass + 1;
-    const totalPasses = engine.maxPass;
-    document.getElementById('passLabel').textContent = `Pass ${passNum} of ${totalPasses}`;
-    
-    // Update output with animation
-    const outputContent = document.getElementById('outputContent');
-    outputContent.classList.remove('fadeIn');
-    
-    setTimeout(() => {
-        outputContent.innerHTML = `<p>${passData.output}</p>`;
-        outputContent.classList.add('fadeIn');
-    }, 10);
-    
-    // Update critique
-    const critiqueContent = document.getElementById('critiqueContent');
-    critiqueContent.innerHTML = `<p>${passData.critique.split('\n').join('<br>')}</p>`;
-    
-    // Update metrics
-    const metrics = ScoreTracker.formatMetrics(passData);
-    updateMetricsDisplay(metrics);
-    updateMetricsChart(engine.history, metrics);
-    
-    // Update change indicator
-    if (engine.currentPass > 0 && engine.history.length > 0) {
-        const prevMetrics = engine.history[engine.history.length - 1];
-        const changeMsg = TextComparison.getChangeDescription(prevMetrics, passData);
-        const changeDiv = document.getElementById('changeIndicator');
-        changeDiv.textContent = '✓ ' + changeMsg;
-        changeDiv.classList.add('active');
-    }
-    
-    // Update timeline
-    updateTimeline(problem, passData, engine.currentPass);
-}
-
-function updateProblemDescription() {
-    const problemKey = document.getElementById('problemSelector').value;
-    const problem = PROBLEMS[problemKey];
-    
-    if (problem) {
-        document.getElementById('problemDescription').textContent = problem.description;
-    }
-}
-
-function updateMetricsDisplay(metrics) {
-    document.getElementById('clarityValue').textContent = metrics.clarity + '%';
-    document.getElementById('correctnessValue').textContent = metrics.correctness + '%';
-    document.getElementById('structureValue').textContent = metrics.structure + '%';
-    document.getElementById('errorCount').textContent = metrics.errors;
-    
-    document.getElementById('clarityBar').style.width = metrics.clarity + '%';
-    document.getElementById('correctnessBar').style.width = metrics.correctness + '%';
-    document.getElementById('structureBar').style.width = metrics.structure + '%';
-}
-
-function resetMetrics() {
-    document.getElementById('clarityValue').textContent = '0%';
-    document.getElementById('correctnessValue').textContent = '0%';
-    document.getElementById('structureValue').textContent = '0%';
-    document.getElementById('errorCount').textContent = '—';
-    
-    document.getElementById('clarityBar').style.width = '0%';
-    document.getElementById('correctnessBar').style.width = '0%';
-    document.getElementById('structureBar').style.width = '0%';
-    
-    // Clear chart
-    const chartDiv = document.getElementById('metricsChart');
-    Plotly.purge(chartDiv);
-}
-
-function updateMetricsChart(history, currentMetrics) {
-    const data = ScoreTracker.createChartData(history, currentMetrics, engine.maxPass);
-    const layout = ScoreTracker.createChartLayout();
-    const chartDiv = document.getElementById('metricsChart');
-    
-    Plotly.react(chartDiv, data, layout, { responsive: true, displayModeBar: false });
-}
-
-function updateTimeline(problem, currentPassData, currentPassIndex) {
+// Render the timeline
+function renderTimeline(example) {
     const timeline = document.getElementById('timeline');
-    const item = document.createElement('div');
-    item.className = 'timeline-item active';
-    
-    const metrics = ScoreTracker.formatMetrics(currentPassData);
-    const avgScore = metrics.average;
-    
-    item.innerHTML = `
-        <strong>Pass ${currentPassIndex + 1}</strong>
-        <div class="score">Avg: ${avgScore}% | Errors: ${currentPassData.errors}</div>
-    `;
-    
-    timeline.appendChild(item);
-    
-    // Scroll timeline to bottom
-    timeline.scrollTop = timeline.scrollHeight;
+    timeline.innerHTML = '';
+
+    const passes = example.passes.slice(0, appState.passCount);
+
+    passes.forEach((pass, index) => {
+        const card = createPassCard(pass, index + 1, example.passes.length);
+        card.addEventListener('click', () => togglePassDetail(card, pass, index + 1));
+        timeline.appendChild(card);
+    });
 }
 
-// CSS class for fade-in animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+// Create a pass card
+function createPassCard(pass, passNumber, totalPasses) {
+    const card = document.createElement('div');
+    card.className = `pass-card pass-${passNumber}`;
+    card.id = `pass-${passNumber}`;
+
+    const coherence = pass.metrics.coherence;
+    const depth = pass.metrics.depth;
+    const confidence = pass.metrics.confidence;
+
+    const header = document.createElement('div');
+    header.className = 'pass-header';
+
+    const passNum = document.createElement('div');
+    passNum.className = 'pass-number';
+    passNum.innerHTML = `
+        <span class="pass-badge"></span>
+        Pass ${passNumber}${passNumber === 1 ? ' (Initial)' : passNumber === totalPasses ? ' (Final)' : ''}
+    `;
+
+    const metrics = document.createElement('div');
+    metrics.className = 'metrics-mini';
+    metrics.innerHTML = `
+        <div class="metric-item">
+            <strong>Coherence:</strong>
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: ${coherence}%"></div>
+            </div>
+            <span>${coherence}%</span>
+        </div>
+        <div class="metric-item">
+            <strong>Depth:</strong>
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: ${depth}%"></div>
+            </div>
+            <span>${depth}%</span>
+        </div>
+        <div class="metric-item">
+            <strong>Confidence:</strong>
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: ${confidence}%"></div>
+            </div>
+            <span>${confidence}%</span>
+        </div>
+    `;
+
+    header.appendChild(passNum);
+    header.appendChild(metrics);
+
+    const content = document.createElement('div');
+    content.className = 'pass-content';
+
+    const outputText = document.createElement('div');
+    outputText.className = 'pass-text';
+    outputText.textContent = pass.output;
+
+    const critiqueBox = document.createElement('div');
+    critiqueBox.className = 'pass-critique';
+    critiqueBox.innerHTML = `<strong>Model Critique:</strong> ${pass.critique}`;
+
+    content.appendChild(outputText);
+    content.appendChild(critiqueBox);
+
+    card.appendChild(header);
+    card.appendChild(content);
+
+    return card;
+}
+
+// Toggle pass detail view
+function togglePassDetail(card, pass, passNumber) {
+    const allCards = document.querySelectorAll('.pass-card');
+    allCards.forEach(c => c.classList.remove('active'));
+
+    if (appState.activePass === passNumber) {
+        appState.activePass = null;
+        card.classList.remove('active');
+        card.querySelector('.pass-content').classList.remove('expanded');
+    } else {
+        appState.activePass = passNumber;
+        card.classList.add('active');
+        card.querySelector('.pass-content').classList.add('expanded');
+        showDetailedView(pass, passNumber);
     }
-    .output-content.fadeIn p {
-        animation: fadeIn 0.5s ease-in;
+}
+
+// Show detailed view
+function showDetailedView(pass, passNumber) {
+    const detailedView = document.getElementById('detailed-view');
+    detailedView.classList.add('active');
+
+    detailedView.innerHTML = `
+        <h3>Detailed Analysis — Pass ${passNumber}</h3>
+        <div class="detailed-content">
+            <div class="label">Full Response:</div>
+            <p>${pass.output}</p>
+
+            <div class="label">Model's Self-Critique:</div>
+            <p>${pass.critique}</p>
+
+            <div class="label">Quality Metrics:</div>
+            <ul style="margin-left: 1.5rem; color: var(--text-secondary);">
+                <li><strong>Coherence (${pass.metrics.coherence}%):</strong> How logically structured and clear is the reasoning?</li>
+                <li><strong>Depth (${pass.metrics.depth}%):</strong> How thoroughly does the analysis explore the problem?</li>
+                <li><strong>Confidence (${pass.metrics.confidence}%):</strong> How certain is the model in its conclusions?</li>
+            </ul>
+
+            <div class="label">Key Insight:</div>
+            <p>${getKeyInsight(pass, passNumber)}</p>
+        </div>
+    `;
+}
+
+// Generate key insights based on pass
+function getKeyInsight(pass, passNumber) {
+    const insights = {
+        1: "Initial pass commits to a solution quickly but lacks nuance. Single-factor thinking dominates.",
+        2: "Second pass reviews the first and identifies gaps. Multi-factor thinking emerges but lacks integration.",
+        3: "Third pass synthesizes multiple factors into coherent explanation. Begins connecting causal chains.",
+        4: "Fourth pass adds technical depth and empirical grounding. Explains model internals and why certain factors matter more.",
+        5: "Fifth pass achieves mastery: combines technical precision, business impact, failure modes, and actionable recommendations."
+    };
+
+    return insights[passNumber] || "Refinement improves reasoning quality with each iteration.";
+}
+
+// Render metrics chart
+function renderMetricsChart(example) {
+    const passes = example.passes.slice(0, appState.passCount);
+    const passNumbers = passes.map((_, i) => `Pass ${i + 1}`);
+    const coherenceValues = passes.map(p => p.metrics.coherence);
+    const depthValues = passes.map(p => p.metrics.depth);
+    const confidenceValues = passes.map(p => p.metrics.confidence);
+
+    const trace1 = {
+        x: passNumbers,
+        y: coherenceValues,
+        name: 'Coherence',
+        mode: 'lines+markers',
+        line: { color: '#3b82f6', width: 3 },
+        marker: { size: 8 }
+    };
+
+    const trace2 = {
+        x: passNumbers,
+        y: depthValues,
+        name: 'Depth',
+        mode: 'lines+markers',
+        line: { color: '#8b5cf6', width: 3 },
+        marker: { size: 8 }
+    };
+
+    const trace3 = {
+        x: passNumbers,
+        y: confidenceValues,
+        name: 'Confidence',
+        mode: 'lines+markers',
+        line: { color: '#ec4899', width: 3 },
+        marker: { size: 8 }
+    };
+
+    const layout = {
+        title: {
+            text: 'Quality Improvement Across Refinement Passes',
+            font: { color: '#e0e6ed', size: 16 }
+        },
+        plot_bgcolor: 'rgba(36, 44, 57, 0.5)',
+        paper_bgcolor: '#1a1f29',
+        font: { color: '#a0a9b8' },
+        hovermode: 'x unified',
+        margin: { l: 60, r: 60, t: 80, b: 60 },
+        yaxis: {
+            range: [0, 100],
+            title: 'Score (0-100)',
+            gridcolor: 'rgba(160, 169, 184, 0.1)'
+        },
+        xaxis: {
+            title: 'Refinement Pass'
+        },
+        legend: {
+            x: 1,
+            y: 1,
+            xanchor: 'right',
+            yanchor: 'top'
+        }
+    };
+
+    const config = {
+        responsive: true,
+        displayModeBar: false
+    };
+
+    Plotly.newPlot('metrics-chart', [trace1, trace2, trace3], layout, config);
+}
+
+// Make Plotly responsive on resize
+window.addEventListener('resize', () => {
+    if (appState.examples[appState.currentExample]) {
+        Plotly.Plots.resize('metrics-chart');
     }
-`;
-document.head.appendChild(style);
+});

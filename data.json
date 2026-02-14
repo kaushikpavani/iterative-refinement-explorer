@@ -1,0 +1,152 @@
+{
+  "examples": {
+    "fraud-1": {
+      "title": "Payment Flag Analysis",
+      "domain": "Fraud Detection",
+      "problem": "Why was a $5,000 payment flagged despite the account having a clean history?",
+      "passes": [
+        {
+          "passNumber": 1,
+          "output": "The payment was flagged because the amount is high. The system detected a large transaction and marked it for review.",
+          "critique": "Shallow reasoning. Only considers amount, ignores context.",
+          "metrics": { "coherence": 45, "depth": 25, "confidence": 35 }
+        },
+        {
+          "passNumber": 2,
+          "output": "The payment of $5,000 triggered a rule because it's 3x the average transaction size for this account. However, this alone shouldn't be concerning given the account's clean history. The system may have flagged it due to velocity (multiple transactions in short timeframe) or geographic anomaly (IP location mismatch).",
+          "critique": "Better. Now considers historical context and multiple risk factors. Still missing cross-account patterns.",
+          "metrics": { "coherence": 68, "depth": 55, "confidence": 62 }
+        },
+        {
+          "passNumber": 3,
+          "output": "The system flagged this $5,000 payment due to a combination of factors: (1) Amount anomaly: 3x the account's typical transaction, (2) Velocity: 4 transactions in 2 hours (unusual pattern), (3) Geographic shift: Payment originated from a new country compared to historical patterns, (4) Device change: Transaction initiated from unfamiliar device. While the account has good history, this specific transaction exhibits multiple concurrent risk signals. The model prioritizes velocity + geography + device novelty as stronger fraud indicators than amount alone.",
+          "critique": "Comprehensive. Integrates multiple risk dimensions. Explains why model weighs certain factors more heavily.",
+          "metrics": { "coherence": 85, "depth": 78, "confidence": 82 }
+        },
+        {
+          "passNumber": 4,
+          "output": "Root cause analysis: The $5,000 payment was flagged via ensemble scoring (fraud probability: 0.72). Key drivers: (1) Velocity anomaly (0.8 risk, 4 txns/2h vs 0.3 average) weights heavily due to known fraud rings operating via rapid-fire tactics, (2) Geographic shift (0.68 risk, new country) combines with (3) Device entropy (0.65 risk, unknown device), creating compound risk. The model down-weights historical clean record (accounts can be compromised over time) and up-weights real-time signals. This multi-signal integration explains why a 'clean history' didn't prevent the flag.",
+          "critique": "Expert-level. Explains model internals, confidence thresholds, and why historical factors are deprioritized.",
+          "metrics": { "coherence": 92, "depth": 89, "confidence": 88 }
+        },
+        {
+          "passNumber": 5,
+          "output": "Detailed risk decomposition: Payment flagged (ensemble score 0.72 > threshold 0.65). Architecture: 3-path decision tree. Path 1 (velocity): 4 transactions in 2 hours represents 800% above baseline; this pattern correlates with organized retail fraud (ORF) rings documented in Q4 fraud reports. Down-weight: historical clean record (accounts compromise gradually; recent behavior more predictive than historical aggregate). Path 2 (geography + device): New country + new device = 0.45 joint risk (correlates with account takeover). Path 3 (amount): $5K is outlier, but individually has low discriminative power. Model learned (via gradient boosting) that velocity + geography + device together identify fraud with 94% precision vs single-factor rules (78%). Recommendation: Flag, but allow user override after identity verification.",
+          "critique": "Maximally detailed. Model architecture, data science reasoning, empirical results cited.",
+          "metrics": { "coherence": 94, "depth": 94, "confidence": 91 }
+        }
+      ]
+    },
+    "fraud-2": {
+      "title": "Transaction Pattern Detection",
+      "domain": "Fraud Detection",
+      "problem": "How would you detect a ring of coordinated fraudsters exploiting a returns loophole?",
+      "passes": [
+        {
+          "passNumber": 1,
+          "output": "You would look for multiple returns from the same person or account. If many returns happen, it's suspicious.",
+          "critique": "Oversimplified. Misses the coordinated/ring aspect.",
+          "metrics": { "coherence": 40, "depth": 20, "confidence": 30 }
+        },
+        {
+          "passNumber": 2,
+          "output": "Fraudulent returns rings would show patterns like: (1) Multiple accounts returning same product, (2) Returns happening faster than typical customer behavior, (3) Multiple accounts from same IP address. These would indicate coordination.",
+          "critique": "Better structure. But still treating each signal independently.",
+          "metrics": { "coherence": 65, "depth": 50, "confidence": 58 }
+        },
+        {
+          "passNumber": 3,
+          "output": "A returns fraud ring exhibits cross-account clustering: (1) Graph structure: 10+ accounts connected via shared IP, payment method, or shipping address, (2) Temporal sync: Returns filed within hours of each other, (3) Product targeting: All return high-margin items (electronics, branded goods), (4) Velocity: 50+ returns/day from this cluster vs. 5/day baseline. GNN analysis reveals this isn't random—accounts are tightly coupled. The returns loophole (accepting returns without proof-of-return) creates arbitrage: fraudsters buy, initiate return, resell product, claim refund.",
+          "critique": "Graph-based thinking. Recognizes coordination structure. Explains economic incentive.",
+          "metrics": { "coherence": 82, "depth": 75, "confidence": 80 }
+        },
+        {
+          "passNumber": 4,
+          "output": "Returns fraud ring detection via multi-modal analysis: (1) Ego-graph expansion: Starting from suspicious account, traverse 2-hop connections (shared IP, payment, shipping). Anomalous: 15-node subgraph with 70% edge density. (2) Temporal alignment: Returns filed in exact sequences (sequential ordering suggests coordination). (3) Item analysis: All items are clearance-eligible; pattern matches known 'return-and-resell' exploit. (4) Behavioral drift: These accounts show zero legitimate purchases/returns historically; only fraudulent pattern. ML classifier: 98% probability of coordinated fraud.",
+          "critique": "Technical depth. Combines graph algorithms with pattern analysis.",
+          "metrics": { "coherence": 88, "depth": 86, "confidence": 85 }
+        },
+        {
+          "passNumber": 5,
+          "output": "Organized returns fraud ring (ORFR) detection architecture: (1) Graph: 18-node subgraph, 71% density, clustering coefficient 0.89 (vs. legitimate: 0.15). Indicates tight coordination. Suspect nodes: accounts 47, 92, 156 (hub centrality > 0.7). (2) Temporal: 47 returns in 6 hours; inter-event time = 7.6 min ± 1.2 (too precise, suggests batch automation). (3) Economic: Cumulative refund risk = $180K. Return rate = 94% (fraud baseline = 2-5%). (4) Linkage: All payment methods resolve to same card BIN; IP cluster from same ISP; shipping addresses are mail forwarding services. (5) Countermeasure: Flag entire subgraph, freeze accounts, investigate payment processor. Estimated fraud prevention: $150K-200K this ring. Secondary analysis: Similar rings detected in Q2-Q3 (seasonal organized fraud); recommend temporal scanning.",
+          "critique": "Holistic attack. Combines graph theory, temporal anomaly, economics, and actionable countermeasures.",
+          "metrics": { "coherence": 96, "depth": 93, "confidence": 89 }
+        }
+      ]
+    },
+    "cv-1": {
+      "title": "Counterfeit Detection",
+      "domain": "Computer Vision",
+      "problem": "How would you detect counterfeit luxury goods from product images alone?",
+      "passes": [
+        {
+          "passNumber": 1,
+          "output": "You would look at the quality of the image. If the image is blurry or low resolution, it might be fake.",
+          "critique": "Confuses image quality with product authenticity.",
+          "metrics": { "coherence": 35, "depth": 15, "confidence": 25 }
+        },
+        {
+          "passNumber": 2,
+          "output": "Counterfeit detection would involve checking product features: logo clarity, stitching quality, material texture. Counterfeit goods often have blurry logos or uneven stitching compared to authentic products.",
+          "critique": "Correct direction. But lacks system integration and confidence calibration.",
+          "metrics": { "coherence": 60, "depth": 48, "confidence": 55 }
+        },
+        {
+          "passNumber": 3,
+          "output": "Multi-feature counterfeit classifier: (1) Logo rendering: Authentic brands use precise embossing; counterfeits show fading/pixelation (CNN detects misalignment <1mm). (2) Stitching analysis: Authentic items have uniform 2-3mm stitch spacing; counterfeits show 3-5mm variance (histogram of edge gradients). (3) Material texture: OCR + spectral analysis on leather; authentic shows consistent grain patterns; counterfeits show repetitive synthetic patterns. (4) Packaging: Serial number fonts, QR code compliance checked against brand standards. Ensemble model: 92% accuracy on holdout test set.",
+          "critique": "Technical rigor. Multiple feature domains. Benchmarked performance.",
+          "metrics": { "coherence": 80, "depth": 77, "confidence": 78 }
+        },
+        {
+          "passNumber": 4,
+          "output": "Advanced counterfeit detection (hierarchical CNN): (1) Macro features: Overall shape, proportions via object detection (YOLO). Counterfeit variance: >15% vs. authentic <5%. (2) Meso features: Logo placement, material seams, hardware positioning via semantic segmentation. Authentic tolerance: ±1mm; counterfeit: ±4mm. (3) Micro features: Texture synthesis via Gabor filters + Fourier analysis. Authentic shows fractal-like consistency; counterfeit shows periodic artifacts. (4) Confidence calibration: Bayesian ensemble of 3 models. Fraud probability threshold: 0.85 (minimizes false positives on edge cases). Error analysis: misclassifications typically occur on high-quality counterfeits (5% of counterfeits). Validation: 96% precision, 91% recall on 10K test images.",
+          "critique": "Multi-scale hierarchical approach. Confidence thresholds. Discusses failure modes.",
+          "metrics": { "coherence": 87, "depth": 84, "confidence": 83 }
+        },
+        {
+          "passNumber": 5,
+          "output": "Production-grade counterfeit detection pipeline: (1) Image quality normalization: Standardize lighting, angle via projective geometry. (2) Feature extraction (3-stage): Macro (ResNet50 backbone, 2048D embedding), Meso (semantic segmentation U-Net), Micro (Gabor + spectral banks). (3) Meta-learning: Fine-tuned on 50K branded product pairs (authentic vs. counterfeit). (4) Scoring: Logistic regression on feature vector (weights learned via Bayesian optimization). Decision boundary at P(counterfeit) = 0.85 (optimized for 0.1% false positive rate given business cost: false pos. = $50 customer friction; false neg. = $200 brand risk). (5) Monitoring: Concept drift detection via Wasserstein distance on embedding distribution (weekly alerts). Deployment: Inference latency 120ms per image (batch processing). Real-world performance (3 months live): 94.8% precision, 89.2% recall. Common failure: premium counterfeits with authentic-quality materials (estimated 2-3% of counterfeits now indistinguishable via image alone—requires material science lab verification).",
+          "critique": "Production systems perspective. Cost-benefit analysis, monitoring, deployment metrics, known limitations.",
+          "metrics": { "coherence": 93, "depth": 91, "confidence": 87 }
+        }
+      ]
+    },
+    "nlp-1": {
+      "title": "Sentiment & Intent Analysis",
+      "domain": "Natural Language Processing",
+      "problem": "Analyze this customer complaint: 'The product arrived damaged, but your support team fixed it immediately. I'm actually impressed.'",
+      "passes": [
+        {
+          "passNumber": 1,
+          "output": "The sentiment is positive because it says 'impressed.' The intent is to praise the company.",
+          "critique": "Ignores the damage and surface-level sentiment classification.",
+          "metrics": { "coherence": 40, "depth": 30, "confidence": 42 }
+        },
+        {
+          "passNumber": 2,
+          "output": "This is a mixed sentiment. The customer had a negative experience (damaged product) but positive resolution (support fixed it). The overall intent seems positive because they express 'impressed,' but there's initial dissatisfaction.",
+          "critique": "Recognizes polarity mix. Lacks structured analysis of sentiment evolution.",
+          "metrics": { "coherence": 68, "depth": 62, "confidence": 65 }
+        },
+        {
+          "passNumber": 3,
+          "output": "Structured sentiment analysis: (1) Negative trigger: 'arrived damaged' (explicit complaint). Sentiment: -0.8 (strong negative). (2) Resolution: 'support team fixed it immediately' (positive recovery action). Sentiment: +0.7. (3) Overall sentiment: +0.6 (net positive after recovery). Intent layers: Primary = complaint, Secondary = praise for support, Tertiary = likelihood to repurchase (implied by 'impressed'). Emotion: Initial frustration → relief → delight. Business insight: This is a 'recovered detractor' scenario—high retention potential if company acts on feedback.",
+          "critique": "Multi-level analysis. Tracks sentiment trajectory and business implications.",
+          "metrics": { "coherence": 82, "depth": 75, "confidence": 78 }
+        },
+        {
+          "passNumber": 4,
+          "output": "Advanced NLP decomposition: (1) Aspect-based sentiment: Product quality (-0.9, 'damaged'), Support quality (+0.95, 'immediately'), Brand perception (+0.8, 'impressed'). (2) Rhetorical structure: Concession (BUT clause) indicates contrast exploitation for persuasion. (3) Intent classification (multi-label): [Complaint: 0.75, Praise: 0.85, Recommendation: 0.60, Feedback: 0.70]. (4) Customer lifecycle stage: Previously dissatisfied → now satisfied (state transition). Predicted behavior: 70% likelihood to increase purchase frequency; NPS score: 8/10 (would recommend). (5) Latent intent: Implicit suggestion that operational excellence (fast support) matters more than product defects.",
+          "critique": "Aspect-level modeling. Multi-label intent. Lifecycle modeling.",
+          "metrics": { "coherence": 85, "depth": 83, "confidence": 81 }
+        },
+        {
+          "passNumber": 5,
+          "output": "Production sentiment-intent pipeline output: Text: 'The product arrived damaged, but your support team fixed it immediately. I'm actually impressed.' (1) Parsing: 3 clauses, 1 conjunction (BUT, adversative). (2) Aspect extraction (SpaCy + transformer): product_quality (damaged, -0.92), support_speed (immediately, +0.94), support_empathy (fixed, +0.78). Weighted aggregate: +0.68 (net positive). (3) Rhetorical analysis: Concession structure signals persuasion (BUT acts as hedge before positive claim). Marker: 'actually' = emphasis, suggests expectation override (\"I expected to be upset, but wasn't\"). (4) Intent: Multi-label soft scores [Complaint: 0.73, Praise: 0.88, Recommendation: 0.62]. Hard classification: PRIMARY=Praise, SECONDARY=Complaint. (5) Lifecycle: Churn risk: 15% (was high, now recovered). NPS: +8 (promoter). Cohort pattern: Customers with successful support recovery show 3.2x higher LTV vs. complainers without resolution. (6) Recommended action: Flag for outreach (potential brand advocate); review product QA (systemic damage issue?); recognition for support team performance. Confidence (0-100): 87 (explicit language, clear structure; uncertainty from hedging language and unusual positive framing).",
+          "critique": "Full NLP stack. Rhetorical analysis. Business action items. Confidence intervals.",
+          "metrics": { "coherence": 94, "depth": 90, "confidence": 86 }
+        }
+      ]
+    }
+  }
+}

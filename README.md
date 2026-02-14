@@ -1,230 +1,202 @@
-# Iterative Refinement Explorer
+# Iterative Self-Refinement Explorer
 
-An interactive visualization tool for understanding how language models improve outputs through recursive self-refinement loops.
+An interactive learning tool that teaches how recursive language models improve reasoning through multiple refinement passes. Watch a model analyze problems with increasing depth and confidence as it iterates.
 
-## What This Teaches
+## What Is This?
 
-Modern large language models (LLMs) achieve their state-of-the-art performance not just from architecture or scale, but from **iterative self-refinement**: the ability to generate an output, critique it, and improve it through multiple passes.
+Modern language models can improve their outputs through **recursive refinement**: analyzing a problem once, then using that first answer to critique and refine into a better answer, then repeating.
 
-This explorer demonstrates the concept visually:
-- **Pass 1:** Generate an initial response
-- **Pass 2:** Critique the output, identify issues
-- **Pass 3:** Refine based on feedback
-- **Pass 4+:** Further polish and optimization
+This explorer demonstrates that concept interactively. You pick a problem (or write your own), choose how many refinement passes to run (1-5), and watch the reasoning quality improve across metrics like:
 
-Each pass shows measurable improvements in **clarity**, **correctness**, and **structure**—the key dimensions of output quality.
+- **Coherence** — Is the explanation logically structured?
+- **Depth** — How thoroughly is the problem analyzed?
+- **Confidence** — How certain is the model in its conclusions?
 
-## The "Aha Moment"
+## Key Insight
 
-By dragging the refinement slider and watching metrics improve, you'll understand:
+**Single-pass reasoning is shallow.** But with each recursive iteration:
+- Pass 1: Surface-level analysis, quick commitments
+- Pass 2: Self-critique, gap identification
+- Pass 3: Multi-factor integration
+- Pass 4: Technical depth, empirical grounding
+- Pass 5: Mastery — technique, business impact, failure modes
 
-1. **Why recursion is powerful** — Repeated application of the same process compounds improvements
-2. **Diminishing returns** — Most gains happen in the first 3–4 passes; beyond that, improvements are marginal
-3. **Multi-dimensional quality** — Outputs improve across multiple axes (clarity, correctness, structure) simultaneously
-4. **The role of critique** — Each pass explicitly identifies and fixes specific issues
+This is how modern systems like o1, Test-Time Scaling, and Self-Verify work.
+
+## Getting Started
+
+### Quick Start
+1. Open `index.html` in a modern web browser
+2. Select an example problem from the dropdown
+3. Adjust the refinement slider (1-5 passes)
+4. Click "Run Refinement"
+5. Explore the timeline: click any pass to see detailed analysis
+
+### Example Problems
+
+**Fraud Detection:**
+- Payment Flag Analysis — Why was a large transaction flagged despite clean history?
+- Transaction Pattern Detection — How do you detect organized returns fraud rings?
+
+**Computer Vision:**
+- Counterfeit Detection — How would you identify fake luxury goods from images alone?
+
+**Natural Language Processing:**
+- Sentiment & Intent Analysis — Parse mixed sentiment (complaint + praise) from customer feedback
+
+### Custom Problems
+
+Enter your own reasoning problem in the "Custom Problem" text area. The tool will show what typical refinement looks like.
+
+## How to Interpret the Metrics
+
+**Coherence (0-100%)**
+- Measures logical structure and clarity
+- Low (20-40%): Scattered thinking, unclear connections
+- Medium (50-70%): Clear but incomplete reasoning
+- High (80-100%): Structured, well-articulated analysis
+
+**Depth (0-100%)**
+- Measures thoroughness and multi-factor analysis
+- Low (20-40%): Surface-level, single-factor
+- Medium (50-70%): Multiple factors considered
+- High (80-100%): Systemic, hierarchical analysis with nuance
+
+**Confidence (0-100%)**
+- Model's certainty in conclusions
+- Low (20-40%): Hedging, uncertainty
+- Medium (50-70%): Reasonable certainty
+- High (80-100%): High conviction, caveats understood
+
+## The Recursion Pattern
+
+Watch how each pass builds on the previous:
+
+1. **Initial Pass** — Quick hypothesis, commits to obvious factors
+2. **Refinement** — Reviews first pass, spots gaps
+3. **Integration** — Combines multiple signals, explains why certain factors matter
+4. **Depth** — Technical reasoning, empirical grounding
+5. **Mastery** — Combines depth with business impact, failure modes, actionable next steps
 
 ## Interactive Features
 
-### Problem Selector
-Choose from 5 different domains:
-- **Code Review** — Find and fix bugs in Python code
-- **Essay Quality** — Improve writing clarity and structure
-- **Math Problem** — Solve equations step-by-step
-- **Logic Puzzle** — Verify logical consistency and correctness
-- **Writing** — Polish a product review for professionalism
+- **Problem Selector** — Choose pre-built examples or write custom problems
+- **Pass Slider** — Control how many refinement iterations to show (1-5)
+- **Timeline View** — See each pass with metrics at a glance
+- **Detailed Analysis** — Click a pass to expand full output, critique, and insights
+- **Metrics Chart** — Plotly graph showing quality trends across all passes
+- **Dark Mode** — Modern, professional design optimized for readability
 
-### Refinement Depth
-Adjust the number of refinement passes (1–6). More passes = higher quality, but diminishing returns kick in.
+## Use Cases
 
-### Animation Speed
-Control the refinement animation speed (0.5x–2.5x) to suit your pace.
+**Research & Education**
+- Understand how iterative reasoning works in large language models
+- Explore Test-Time Scaling and recursive thinking in modern AI
+- See why multiple-choice passes produce better results than single-pass
 
-### Real-Time Metrics
-Watch the quality metrics update live:
-- **Clarity** — Is the output easy to understand?
-- **Correctness** — Is it factually and logically accurate?
-- **Structure** — Is it well-organized?
-- **Error Count** — How many problems remain?
+**Product Teams**
+- Communicate to stakeholders why iterative refinement matters
+- Build intuition about cost-benefit (more compute = better answers)
+- Visualize reasoning quality improvement
 
-### Visual Chart
-Plotly chart shows how metrics improve across passes—a key insight into the refinement process.
+**AI/ML Practitioners**
+- Benchmark iterative reasoning strategies
+- Understand how self-critique loops improve outputs
+- Design better prompts for recursive decomposition
 
-## How Iterative Refinement Works in Real LLMs
+## Technical Details
 
-### Examples in Production Systems
+**Built With:**
+- HTML5 / CSS3 / Vanilla JavaScript
+- Plotly.js for metrics visualization
+- No build tools, no frameworks
+- Static files — works on GitHub Pages
 
-**Claude with Extended Thinking**
-- Multiple internal reasoning passes before generating output
-- Critiques its own reasoning, refines approach
-- Result: more accurate, well-reasoned responses
-
-**OpenAI's o1 Model**
-- Dedicated "thinking tokens" for iterative problem-solving
-- Chain-of-thought reasoning across multiple steps
-- Similar concept: recursion improves quality
-
-**Universal Transformers**
-- A single neural network layer applied repeatedly (weight-sharing)
-- Each pass processes information more deeply
-- Adaptive computation: model decides how many passes needed
-
-**Recursive Prompting (Agents)**
-- Break a complex problem into sub-problems
-- Solve recursively: solve(problem) = combine(solve(subproblem1), solve(subproblem2), ...)
-- Multi-agent systems use this pattern extensively
-
-## Technical Architecture
-
-### File Structure
+**File Structure:**
 ```
 iterative-refinement-explorer/
-├── index.html        # Main UI (controls, output panels, metrics)
-├── style.css         # Dark mode styling, responsive layout
-├── problems.js       # Problem definitions, multi-pass data
-├── refinement.js     # Core refinement logic, scoring, charting
-├── app.js            # Event handlers, UI orchestration
-└── README.md         # This file
+├── index.html         # Main UI
+├── style.css          # Dark mode styling
+├── app.js             # Interactivity & rendering
+├── data.json          # Pre-computed refinement examples
+├── README.md          # This file
+└── .gitignore
 ```
 
-### Key Components
+**Browser Support:**
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Requires JavaScript enabled
+- Responsive design (works on mobile & desktop)
 
-**RefinementEngine** (refinement.js)
-- Manages problem initialization and pass progression
-- Tracks history and completion state
-- Handles animation timing and speed
+## Data & Examples
 
-**ScoreTracker** (refinement.js)
-- Calculates and formats quality metrics
-- Generates Plotly chart data
-- Compares previous vs. current metrics
+Example problems include:
 
-**UI Layer** (app.js + HTML/CSS)
-- Real-time metric display with animated progress bars
-- Plotly chart for metric visualization
-- Timeline view of refinement progression
+### Fraud Detection
+Pre-computed with realistic risk factors:
+- Single-factor analysis → multi-factor → graph-based reasoning
+- Velocity, geography, device, behavioral patterns
+- Real-world fraud ring indicators
 
-## Technologies Used
+### Computer Vision
+Counterfeit detection refined across passes:
+- Image quality checks → aspect-based features → multi-modal analysis
+- Precision/recall metrics, failure modes discussed
+- Production deployment considerations
 
-- **HTML5** — Semantic structure
-- **CSS3** — Dark mode theme, responsive grid layout, animations
-- **Vanilla JavaScript** — No frameworks or build tools
-- **Plotly.js** — Interactive quality metrics chart
-- **GitHub Pages** — Instant deployment (no backend needed)
+### NLP
+Sentiment + intent analysis with recursion:
+- Mixed signals (complaint + praise) → structural parsing → multi-label intent
+- Business metrics (NPS, churn prediction)
+- Rhetorical analysis and confidence calibration
 
-## How to Use
+All examples are generic — no proprietary data, company names, or internal references.
 
-### 1. Open in Browser
-Simply open `index.html` in any modern browser (Chrome, Firefox, Safari, Edge).
+## Performance
 
-```bash
-open index.html
-```
+- Instant rendering (all data precomputed)
+- No API calls required
+- <2MB total size
+- Optimized for mobile
 
-Or use a local server:
-```bash
-python3 -m http.server 8000
-# Then visit http://localhost:8000
-```
+## Customization
 
-### 2. Select a Problem
-Choose from the 5 problem domains in the dropdown.
+To add your own examples:
 
-### 3. Set Refinement Depth
-Use the slider to pick how many refinement passes to run (1–6).
-
-### 4. Click "Start Refinement"
-Watch as the output improves automatically. Each pass shows:
-- The refined output
-- A critique explaining what improved
-- Updated quality metrics
-- A timeline of all passes
-
-### 5. Compare Across Depths
-Reset and try different numbers of passes. You'll see that:
-- 1–2 passes: Major improvements
-- 3–4 passes: Good quality, diminishing returns
-- 5–6 passes: Minimal additional gains
-
-## Extending This Explorer
-
-### Adding New Problems
-
-1. Open `problems.js`
-2. Add a new entry to the `PROBLEMS` object:
-
-```javascript
-'your-problem-key': {
-    title: 'Your Problem Title',
-    description: 'What this problem demonstrates',
-    passes: [
-        {
-            output: 'Initial output (v1)',
-            critique: 'What\'s wrong with v1?',
-            clarity: 40,
-            correctness: 50,
-            structure: 35,
-            errors: 5
-        },
-        {
-            output: 'Improved output (v2)',
-            critique: 'What improved?',
-            clarity: 75,
-            correctness: 85,
-            structure: 80,
-            errors: 2
-        },
-        // More passes...
-    ]
+1. Edit `data.json`
+2. Add a new entry under `examples`:
+```json
+"custom-example": {
+  "title": "Your Title",
+  "domain": "Your Domain",
+  "problem": "Your question here",
+  "passes": [
+    {
+      "passNumber": 1,
+      "output": "First pass analysis...",
+      "critique": "Why this pass is limited...",
+      "metrics": { "coherence": 45, "depth": 30, "confidence": 35 }
+    },
+    // ... repeat for passes 2-5
+  ]
 }
 ```
-
-3. Update the dropdown in `index.html`:
-```html
-<option value="your-problem-key">Your Problem Title</option>
-```
-
-### Adjusting Metrics
-
-Modify the scoring logic in `ScoreTracker` (refinement.js) to reflect your domain's quality dimensions. For example, add `efficiency` or `creativity` metrics alongside the defaults.
-
-### Custom Styling
-
-Edit `style.css` to change colors, fonts, or layout. The CSS uses CSS variables (`--primary`, `--bg`, etc.) for easy theming.
-
-## Learning Outcomes
-
-After exploring this tool, you'll understand:
-
-1. **Recursive architectures** — How repeated application improves results
-2. **Adaptive computation** — Why some problems need more refinement steps than others
-3. **Multi-pass reasoning** — How modern LLMs achieve quality through iteration, not just raw capacity
-4. **Diminishing returns** — The practical limit of refinement passes
-5. **Quality dimensions** — That output quality is multidimensional (clarity ≠ correctness ≠ structure)
-
-## Research Context
-
-This explorer demonstrates concepts from:
-
-- **Universal Transformers** ([Dehghani et al., 2019](https://arxiv.org/abs/1603.06393)) — Recurrent weight-sharing transformers with adaptive computation
-- **Adaptive Computation Time** ([Graves, 2016](https://arxiv.org/abs/1603.08983)) — Neural networks that decide how many steps to take
-- **Chain-of-Thought Prompting** ([Wei et al., 2022](https://arxiv.org/abs/2201.11903)) — Multi-step reasoning improves LLM accuracy
-- **Self-Refinement in LLMs** — Recent work (2024+) on iterative critique and refinement for reasoning and planning
-
-## Future Enhancements
-
-- [ ] Custom problem input (users define their own refinement challenges)
-- [ ] Export refinement timeline as PDF or image
-- [ ] Comparison mode (side-by-side view of different depths)
-- [ ] A/B testing (compare two different refinement strategies)
-- [ ] Real LLM integration (actual API calls to demonstrate live refinement)
-- [ ] Keyboard navigation and accessibility improvements
+3. Update the `<select>` in `index.html` to include your example
 
 ## License
 
-MIT License — Feel free to fork, modify, and share.
+Public domain. Use freely for education, research, or any purpose.
+
+## Feedback & Improvements
+
+This tool is designed for learning. Try:
+- Different pass counts (watch diminishing returns)
+- Comparing across domains (fraud vs. CV vs. NLP reasoning)
+- Using custom problems to see generic refinement patterns
+- Showing colleagues to build intuition about iterative AI
 
 ---
 
-**Built for learners who want to understand how modern language models achieve excellence through iterative refinement.**
+**Built as an interactive deep-dive into Recursive Language Models.**
 
-Questions? [Explore the code](https://github.com/kaushikpavani/iterative-refinement-explorer) or reach out.
+Last Updated: February 2026
